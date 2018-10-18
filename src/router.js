@@ -15,4 +15,8 @@ const routes = [
   { path: '/dashboard', component: DashboardPage }
 ]
 
-export default new VueRouter({mode: 'history', routes})
+export default new VueRouter(
+  {
+    mode: 'history', 
+    routes
+  })
