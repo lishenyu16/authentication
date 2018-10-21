@@ -5,19 +5,37 @@
     </div>
     <nav>
       <ul>
-        <li>
+        <li v-if="!auth">
           <router-link to="/signup">Sign Up</router-link>
         </li>
-        <li>
+        <li v-if="!auth">
           <router-link to="/signin">Sign In</router-link>
         </li>
-        <li>
+        <li v-if="auth">
           <router-link to="/dashboard">Dashboard</router-link>
+        </li>
+        <li v-if="auth">
+          <button @click="logout" class="btn btn-primary">Log Out</button>
         </li>
       </ul>
     </nav>
   </header>
 </template>
+<script>
+  export default {
+    computed: {
+      auth() {
+        return this.$store.getters.isAuthenticated
+      }
+    },
+    methods: {
+      logout() {
+        this.$store.dispatch('logout')
+        console.log(this.$store.state.idToken)
+      }
+    },
+  }
+</script>
 
 <style scoped>
   #header {

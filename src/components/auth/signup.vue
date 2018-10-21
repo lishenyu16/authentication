@@ -69,7 +69,7 @@
 </template>
 
 <script>
-  import axios from 'axios'
+
   export default {
     data () {
       return {
@@ -104,10 +104,7 @@
           terms: this.terms
         }
         console.log(formData)
-        axios.post('https://authentication-c10ed.firebaseio.com/users.json',formData)
-          .then(res=>{
-            console.log(res)
-          })
+        this.$store.dispatch('signup',formData)
       }
     }
   }

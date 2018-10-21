@@ -8,26 +8,13 @@
 <script>
   import axios from 'axios'
   export default {
-    data() {
-      return {
-        email: ''
+    computed: {
+      email() {
+        return !this.$store.getters.user?false:this.$store.getters.user.email
       }
     },
     created() {
-        axios.get('https://authentication-c10ed.firebaseio.com/users.json')
-          .then(
-            res => {
-              const data = res.data
-              const users = []
-              for( let key in data){
-                const user = data[key]
-                user.id = key
-                users.push(user)
-              }
-              this.email = users[0].email
-              console.log(this.email)
-            }
-          )
+      this.$store.dispatch('fetchUser')
     }
 
   }     

@@ -25,6 +25,7 @@
 </template>
 
 <script>
+  import axios from '../../axios-auth'
   export default {
     data () {
       return {
@@ -33,12 +34,14 @@
       }
     },
     methods: {
+      //verifyPassword?key=[API_KEY]
       onSubmit () {
         const formData = {
           email: this.email,
           password: this.password,
+          returnSecureToken : true
         }
-        console.log(formData)
+        this.$store.dispatch('login',formData)
       }
     }
   }
