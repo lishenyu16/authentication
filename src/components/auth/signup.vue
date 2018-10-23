@@ -1,6 +1,6 @@
 <template>
   <div id="signup">
-    <div class="signup-form">
+    <div class="signup-form" v-if="!signed_up">
       <form @submit.prevent="onSubmit">
         <div class="input">
           <label for="email">Mail</label>
@@ -28,7 +28,8 @@
           <input
                   type="password"
                   id="confirm-password"
-                  v-model="confirmPassword">
+                  v-model="confirmPassword"
+                  :class="{alert:unmatch}"><label for="confirm-password" v-if="unmatch" style="color:red">Unmatch Password</label>
         </div>
         <div class="input">
           <label for="country">Country</label>
@@ -65,11 +66,14 @@
         </div>
       </form>
     </div>
+    <div v-if="signed_up">
+      <h2 id='signed_up'>You have successfully signed up!</h2>
+    </div>
   </div>
 </template>
 
 <script>
-
+  import { required, email} from 'vuelidate/lib/validators'
   export default {
     data () {
       return {
@@ -80,6 +84,12 @@
         country: 'usa',
         hobbyInputs: [],
         terms: false
+      }
+    },
+    validations:{
+      email:{
+        required,
+        email
       }
     },
     methods: {
@@ -106,11 +116,27 @@
         console.log(formData)
         this.$store.dispatch('signup',formData)
       }
-    }
+    },
+    computed: {
+      unmatch() {
+        return this.password!=this.confirmPassword 
+      },
+      signed_up(){
+        return this.$store.getters.signed_up
+      }
+    },
   }
 </script>
 
 <style scoped>
+  .input .alert{
+    border: 2px solid red;
+  }
+  #signed_up{
+    text-align: center;
+    padding-top: 40px;
+    color:rgb(0, 255, 255);
+  }
   .signup-form {
     width: 400px;
     margin: 30px auto;
@@ -196,4 +222,5 @@
     color: #ccc;
     cursor: not-allowed;
   }
+
 </style>

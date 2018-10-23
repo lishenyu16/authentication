@@ -9,12 +9,15 @@ export default new Vuex.Store({
   state: {
     idToken: null,
     userId: null,
-    user:null
+    user:null,
+    email:null,
+    signed_up:false
   },
   mutations: {
     authUser(state,authData){
       state.idToken = authData.token,
       state.userId = authData.userId
+      state.email = authData.email
     },
     storeUser(state,user){
       state.user = user
@@ -30,7 +33,7 @@ export default new Vuex.Store({
         commit('clearAuthData')
       },expirationTime*1000)
     },
-    signup({commit,dispatch},authData){
+    signup({commit,dispatch,state},authData){
       axios.post('/signupNewUser?key=AIzaSyCFO-jtb0GIJWHWiBqpgpzn9VkUnIWpsq0',{
         email:authData.email,
         password:authData.password,
@@ -40,7 +43,8 @@ export default new Vuex.Store({
         console.log(res)
         commit('authUser',{
           token: res.data.idToken,
-          userId: res.data.localId
+          userId: res.data.localId,
+          email: res.data.email
         })
         const now = new Date()
         const expirationDate = new Date(now.getTime() + res.data.expiresIn*1000)
@@ -49,9 +53,10 @@ export default new Vuex.Store({
         localStorage.setItem('expirationDate',expirationDate)
         dispatch('setLogoutTimer',res.data.expiresIn)
         dispatch('storeUser',authData)
-          .then(res=>console.log(res))
+          // .then(res=>console.log(res))
           .catch(err=>console.log(err))
-        router.replace('./dashboard')
+        // router.replace('./dashboard')
+        state.signed_up = true
       })
       .catch(err=>console.log(err))
     },
@@ -60,8 +65,9 @@ export default new Vuex.Store({
         email:authData.email,
         password: authData.password,
         returnSecureToken : true
-      })
+      }) 
       .then(res=>{
+        console.log(res)
         const now = new Date()
         const expirationDate = new Date(now.getTime() + res.data.expiresIn*1000)
         localStorage.setItem('token',res.data.idToken)
@@ -69,10 +75,15 @@ export default new Vuex.Store({
         localStorage.setItem('expirationDate',expirationDate)
         commit('authUser',{
           token: res.data.idToken,
-          userId: res.data.localId
+          userId: res.data.localId,
+          email: res.data.email
         })
         dispatch('setLogoutTimer',res.data.expiresIn)
         router.replace('./dashboard')
+      })
+      .catch(err=>{
+        console.log(err)
+        
       })
     },
     tryAutoLogin({commit}){
@@ -88,7 +99,8 @@ export default new Vuex.Store({
       }
       commit('authUser', { token:token, userId:userId } )
     },
-    logout({commit}){
+    logout({commit,state}){
+      state.signed_up=false
       commit('clearAuthData')
       localStorage.removeItem('userId')
       localStorage.removeItem('token')
@@ -116,8 +128,8 @@ export default new Vuex.Store({
             user.id = key
             users.push(user)
           }
-          commit('storeUser',users[0])
-          console.log('this is the id: ',users[0].id)
+          const current_user = users.find( element => state.email==element.email )
+          commit('storeUser',current_user)
         }
       )
     }
@@ -128,6 +140,9 @@ export default new Vuex.Store({
     },
     isAuthenticated(state){
       return state.idToken!=null
+    },
+    signed_up(state){
+      return state.signed_up
     }
   }
 })
