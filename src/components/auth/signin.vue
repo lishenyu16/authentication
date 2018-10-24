@@ -14,6 +14,7 @@
           <input
                   type="password"
                   id="password"
+                  :class="{invalid: mismatch}"
                   v-model="password">
         </div>
         <div class="submit">
@@ -30,7 +31,7 @@
     data () {
       return {
         email: '',
-        password: ''
+        password: '',
       }
     },
     methods: {
@@ -43,11 +44,19 @@
         }
         this.$store.dispatch('login',formData)
       }
-    }
+    },
+    computed: {
+      mismatch() {
+        return this.$store.getters.wrong_pw
+      }
+    },
   }
 </script>
 
 <style scoped>
+  .input .invalid{
+    border: 1px solid red;
+  }
   .signin-form {
     width: 400px;
     margin: 30px auto;

@@ -2,19 +2,23 @@
   <div id="signup">
     <div class="signup-form" v-if="!signed_up">
       <form @submit.prevent="onSubmit">
-        <div class="input">
-          <label for="email">Mail</label>
+        <div class="input" :class="{invalid: $v.email.$error}">
+          <label for="email">Email</label>
           <input
                   type="email"
                   id="email"
+                  @blur="$v.email.$touch()"
                   v-model="email">
+          <p v-if="!$v.email.email">Please provide a valid email address</p>
         </div>
-        <div class="input">
+        <div class="input" :class="{invalid: $v.age.$error}">
           <label for="age">Your Age</label>
           <input
                   type="number"
                   id="age"
+                  @blur="$v.age.$touch()"
                   v-model.number="age">
+          <p v-if="!$v.age.minVal">You have to be at least {{ $v.age.$params.minVal.min }} </p>
         </div>
         <div class="input">
           <label for="password">Password</label>
@@ -57,12 +61,16 @@
             </div>
           </div>
         </div>
-        <div class="input inline">
-          <input type="checkbox" id="terms" v-model="terms">
+        <div class="input inline" :class="{invalid: $v.terms.$invalid}">
+          <input 
+            type="checkbox" 
+            id="terms" 
+            @change="$v.terms.$touch()" 
+            v-model="terms">
           <label for="terms">Accept Terms of Use</label>
         </div>
         <div class="submit">
-          <button type="submit">Submit</button>
+          <button type="submit" :disabled="$v.$invalid">Submit</button>
         </div>
       </form>
     </div>
@@ -73,7 +81,8 @@
 </template>
 
 <script>
-  import { required, email} from 'vuelidate/lib/validators'
+  import axios from 'axios'
+  import { required, email, numeric, minValue} from 'vuelidate/lib/validators'
   export default {
     data () {
       return {
@@ -89,7 +98,22 @@
     validations:{
       email:{
         required,
-        email
+        email,
+        unique: val =>{
+          if(val === '') return true
+          return axios.get('/users.json?orderBy="email"&equalTo="' + val + '"')
+            .then(res=> {
+              //check if it returns an empty object which means not exist in db
+              return Object.keys(res.data).length===0
+            })
+        }
+      },
+      age:{
+        numeric,
+        minVal: minValue(18)
+      },
+      terms:{
+        required
       }
     },
     methods: {
@@ -169,6 +193,15 @@
 
   .input.inline input {
     width: auto;
+  }
+
+  .input.invalid label{
+    color: red;
+  }
+
+  .input.invalid input{
+    border: 1px solid red;
+    background-color: rgb(226, 199, 162);
   }
 
   .input input:focus {

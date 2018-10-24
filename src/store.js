@@ -11,7 +11,8 @@ export default new Vuex.Store({
     userId: null,
     user:null,
     email:null,
-    signed_up:false
+    signed_up:false,
+    wrong_pw:false
   },
   mutations: {
     authUser(state,authData){
@@ -51,6 +52,7 @@ export default new Vuex.Store({
         localStorage.setItem('token',res.data.idToken)
         localStorage.setItem('userId',res.data.localId)
         localStorage.setItem('expirationDate',expirationDate)
+        localStorage.setItem('email',res.data.email)
         dispatch('setLogoutTimer',res.data.expiresIn)
         dispatch('storeUser',authData)
           // .then(res=>console.log(res))
@@ -60,7 +62,7 @@ export default new Vuex.Store({
       })
       .catch(err=>console.log(err))
     },
-    login({commit,dispatch},authData){
+    login({commit,dispatch,state},authData){
       axios.post('verifyPassword?key=AIzaSyCFO-jtb0GIJWHWiBqpgpzn9VkUnIWpsq0',{
         email:authData.email,
         password: authData.password,
@@ -68,11 +70,13 @@ export default new Vuex.Store({
       }) 
       .then(res=>{
         console.log(res)
+        state.wrong_pw = false
         const now = new Date()
         const expirationDate = new Date(now.getTime() + res.data.expiresIn*1000)
         localStorage.setItem('token',res.data.idToken)
         localStorage.setItem('userId',res.data.localId)
         localStorage.setItem('expirationDate',expirationDate)
+        localStorage.setItem('email',res.data.email)
         commit('authUser',{
           token: res.data.idToken,
           userId: res.data.localId,
@@ -83,12 +87,13 @@ export default new Vuex.Store({
       })
       .catch(err=>{
         console.log(err)
-        
+        state.wrong_pw = true
       })
     },
-    tryAutoLogin({commit}){
+    tryAutoLogin({commit,dispatch}){
       const token = localStorage.getItem('token')
       const userId = localStorage.getItem('userId')
+      const email = localStorage.getItem('email')
       if(!token){
         return
       }
@@ -97,7 +102,8 @@ export default new Vuex.Store({
       if(expirationDate<=now){
         return
       }
-      commit('authUser', { token:token, userId:userId } )
+      commit('authUser', { token:token, userId:userId, email:email} )
+      dispatch('fetchUser')
     },
     logout({commit,state}){
       state.signed_up=false
@@ -143,6 +149,9 @@ export default new Vuex.Store({
     },
     signed_up(state){
       return state.signed_up
+    },
+    wrong_pw(state){
+      return state.wrong_pw
     }
   }
 })
